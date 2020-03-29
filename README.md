@@ -9,3 +9,5 @@ List of dependencies can be found in reqs.txt.
 * Downlaod the pretrained weights and save them in respective folders (``weights/<network name>/``). Links to the pretrained weights are provided in ``weights/<network name>/``.
 
 * To obtain the results of 2sUnet and Unet, run the scripts test_unet_DA.py and test_2sunet_DA.py respectively (example: python test_unet_DA.py)
+
+* The results will get saved in ``testouts/``
