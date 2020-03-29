@@ -1,0 +1,10 @@
+# Base experiment
+UNet config:  # Refer to UNet implementation for details ##ss required
+    steps:                   4
+    first layer channels:    64
+    num classes:             2
+    num input channels:      3
+    two sublayers:           True
+    ndims:                   2
+    border mode:             same # same (output size = input size)
+    remove skip connections: False
