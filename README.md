@@ -4,6 +4,6 @@ This repo contains segmentation routines associated with supervised and semi-sup
 
 List of dependencies can be found in reqs.txt.
 
-# To run the test code
+## To run the test code
 
 
