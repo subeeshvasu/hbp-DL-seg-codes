@@ -340,6 +340,145 @@ Two-Stream UNet
 roger.bermudez@epfl.ch
 CVLab EPFL 2019
 """
+class TwoStreamUNet(torch.nn.Module):
+    """Vanilla Two Stream UNet."""
+    # pylint: disable=too-many-instance-attributes, arguments-differ
+    def __init__(self, unet_config=None, layer_sharing_spec=None):
+        super().__init__()
+        self.config = unet_config
+        self.unet_source = UNet(unet_config)
+        self.unet_target = UNet(unet_config)
+
+        if not layer_sharing_spec:
+            layer_sharing_spec = '-' * TwoStreamUNet._get_num_layers(self.unet_source)
+        self.layers_to_regularize, self.layers_to_share = TwoStreamUNet.parse_layer_sharing(self, layer_sharing_spec)
+        self.feature_maps_to_regularize = [False] * (len(self.layers_to_regularize) - 1) + [True]
+
+        self.features_source = None
+        self.features_target = None
+
+        self.regularization_params = self._get_regularization_params()
+        for parameter_pair in self.regularization_params:
+            if parameter_pair is not None:
+                (weight_name, weight_param), (bias_name, bias_param) = parameter_pair
+                self.register_parameter(weight_name, weight_param)
+                self.register_parameter(bias_name, bias_param)
+        self.share_weights()  # To be called after loading pretrained model
+        self.logsoftmax = torch.nn.LogSoftmax(dim=1)
+
+    def _get_regularization_params(self):
+        """
+        Returns a list of pairs (weights, biases), one for each layer, for weight regularization.
+        """
+        all_source_layers = TwoStreamUNet._get_all_layers(self.unet_source)
+        all_shared_params = (((f'reg_layer_{layer_num}_w', torch.nn.Parameter(torch.ones(1)).to(self.device)),
+                              (f'reg_layer_{layer_num}_b', torch.nn.Parameter(torch.zeros(1)).to(self.device)))
+                             if apply_regularization else None
+                             for ((layer_num, layer), apply_regularization) in
+                             zip(enumerate(all_source_layers), self.layers_to_regularize))
+
+        return list(all_shared_params)
+
+    def share_weights(self):
+        """ Copies references to shared weights, according to specification from layers_to_share """
+        param_pairs = zip(*map(TwoStreamUNet._get_all_layers, (self.unet_source, self.unet_target)))
+        shared_params = (param_pair for param_pair, shared in zip(param_pairs, self.layers_to_share) if shared)
+        for layer_source, layer_target in shared_params:
+            if isinstance(layer_source, UNetLayer):
+                layer_source = layer_source.unet_layer
+                layer_target = layer_target.unet_layer
+            if hasattr(layer_source, "weight"):
+                layer_target.weight = layer_source.weight
+                layer_target.bias = layer_source.bias
+            for operation_source, operation_target in zip(layer_source.children(), layer_target.children()):
+                if hasattr(operation_source, "weight"):
+                    operation_target.weight = operation_source.weight
+                    operation_target.bias = operation_source.bias
+
+    def forward(self, batch_source, batch_target):
+        result_source, self.features_source = self.unet_source.forward(batch_source, return_feature_maps=True)
+        result_target, self.features_target = self.unet_target.forward(batch_target, return_feature_maps=True)
+
+        result_source = self.logsoftmax(result_source)
+        result_target = self.logsoftmax(result_target)
+
+        return result_source, result_target
+
+    def forward_source(self, batch_source):
+        result_source, self.features_source = self.unet_source.forward(batch_source, return_feature_maps=True)
+        result_source = self.logsoftmax(result_source)
+        return result_source
+
+    def forward_target(self, batch_target):
+        result_target, self.features_target = self.unet_target.forward(batch_target, return_feature_maps=True)
+        result_target = self.logsoftmax(result_target)
+        return result_target
+
+    def to(self, *args, **kwargs):
+        super().to(*args, **kwargs)
+
+        # Restore parameter sharing!
+        self.share_weights()
+
+        return self
+
+    @property
+    def device(self):
+        return next(self.parameters()).device
+
+    @staticmethod
+    def _get_num_layers(unet):
+        return unet.config.steps * 3 + 2
+
+    @staticmethod
+    def _get_all_layers(unet):
+        return chain(unet.down_layers, *unet.up_layers, (unet.final_layer,))
+
+    @staticmethod
+    def parse_layer_sharing(net, sharing_spec):
+        sharing_spec = sharing_spec.replace(',', '')
+        sharing_len = len(sharing_spec)
+        steps = net.unet_source.config.steps
+        if sharing_len == 1:
+            sharing_spec *= 3 * steps + 2
+        elif sharing_len == 2:
+            sharing_spec = (sharing_spec[0] * (steps + 1)) + (sharing_spec[1] * (2 * steps + 1))
+        elif sharing_len == 3:
+            sharing_spec = (sharing_spec[0] * steps) + sharing_spec[1] + (sharing_spec[2] * (2 * steps + 1))
+        elif sharing_len == 4:
+            sharing_spec = (sharing_spec[0] * steps) + sharing_spec[1] + (sharing_spec[2] * (2 * steps)) + sharing_spec[3]
+        elif sharing_len == 2 * steps + 2:
+            sharing_spec = sharing_spec[:steps + 1] + \
+                           "".join(map(lambda c: 2 * c, sharing_spec[steps + 1:2 * steps + 1])) + \
+                           sharing_spec[-1]
+        elif sharing_len == 3 * steps + 2:
+            pass
+        else:
+            raise ValueError(f"Invalid layer sharing specification! {sharing_spec}")
+
+        layers_to_regularize = list(map(lambda c: c.lower() == 'r', sharing_spec))
+        layers_to_share = list(map(lambda c: c.lower() == 's', sharing_spec))
+
+        return layers_to_regularize, layers_to_share
+
+    @staticmethod
+    def get_parameter_regularization_data(net):
+        '''
+        Return tuples with source domain parameters, target domain parameters, and regularization parameters
+        (scale, bias)
+        '''
+        all_net_layers = map(TwoStreamUNet._get_all_layers, (net.unet_source, net.unet_target))
+        weight_triplets = filter(lambda triplet: triplet[-1] is not None, zip(*all_net_layers, net.regularization_params))
+        for source_layers, target_layers, (regularization_scale, regularization_bias) in weight_triplets:
+            _, scale_param = regularization_scale
+            _, bias_param = regularization_bias
+            for source_parameter, target_parameter in zip(source_layers.parameters(), target_layers.parameters()):
+                yield source_parameter, target_parameter, scale_param, bias_param
+
+    @staticmethod
+    def scores_to_labels(scores):
+        return torch.argmax(scores, dim=1)
+
 class SharedTwoStreamUNet2Out(torch.nn.Module):
     """Two Stream UNet with two outputs."""
     def __init__(self, unet_config=None, layer_sharing_spec=None):
