@@ -16,8 +16,10 @@ To demonstrate the effectiveness of this approach, example results for the task 
 
 Source domain image
 <img src="./fig/crop-source_image_59.png" width="500">
+
 Source domain label
 <img src="./fig/crop-source_label_59.png" width="500">
+
 Target domain image
 <img src="./fig/crop-target_img_10.png" width="500">
 
