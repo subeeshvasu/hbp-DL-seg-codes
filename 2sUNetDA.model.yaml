@@ -1,10 +1,10 @@
 name: 2s-U-Net DA
 description: 2s-U-Net DA
 cite:
-    - text: "Ronneberger, Olaf et al. U-net: Convolutional networks for biomedical image segmentation. MICCAI 2015."
-      doi: https://doi.org/10.1007/978-3-319-24574-4_28
+    - text: "Roger Bermudez et al. A domain-adaptive two-stream U-Net for electron microscopy image segmentation. ISBI 2018."
+      doi: https://doi.org/10.1109/ISBI.2018.8363602
 authors:
-  - Vasu Subeesh
+  - Roger Bermudez, Vasu Subeesh
 documentation: README.md
 tags: [unet2d, pytorch, hbp, sga2]
 license: MIT
