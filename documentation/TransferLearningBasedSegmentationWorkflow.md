@@ -14,25 +14,25 @@ As segmentation network, this workflow uses variants of [U-Net](https://doi.org/
 
 To demonstrate the effectiveness of this approach, example results for the task of brain vasculature segmentation is shown next. The target images used in this experiment was captured under a different condition as compared to the source data (data from Ludovico Silvestri's European Laboratory for Non-linear Spectroscopy (LENS)). Sample images from the dataset is shown below.
 
-Source domain image
++ Source domain image
 
 <img src="./fig/crop-source_image_59.png" width="500">
 
-Source domain label
++ Source domain label
 
 <img src="./fig/crop-source_label_59.png" width="500">
 
-Target domain image
++ Target domain image
 
 <img src="./fig/crop-target_img_10.png" width="500">
 
 As is evident, the target images were captured under a different conditions as compared to source domain and are therefore affected by blur and other kinds of distortions. The segmentation outputs obtained from networks trained with and without transfer learning is shown below.
 
-Segmentation Output on Target Image with no Transfer Learning
++ Segmentation Output on Target Image with no Transfer Learning
 
 <img src="./fig/crop-target_noDA_out_10.jpg" width="500">
 
-Segmentation Output on Target Image with Transfer Learning
++ Segmentation Output on Target Image with Transfer Learning
 
 <img src="./fig/crop-target_DA_out_10.jpg" width="500">
 
