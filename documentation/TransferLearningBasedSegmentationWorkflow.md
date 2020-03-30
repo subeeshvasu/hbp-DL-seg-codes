@@ -15,6 +15,7 @@ As segmentation network, this workflow uses variants of [U-Net](https://doi.org/
 To demonstrate the effectiveness of this approach, example results for the task of brain vasculature segmentation is shown next. The target images used in this experiment was captured under a different condition as compared to the source data (data from Ludovico Silvestri's European Laboratory for Non-linear Spectroscopy (LENS)). Sample images from the dataset is shown below.
 
 Source domain image
+<img src="./fig/crop-source_image_59.png" width="100">
 ![](./fig/crop-source_image_59.png| width=100)
 Source domain label
 ![](./fig/crop-source_label_59.png)
