@@ -1,6 +1,11 @@
 import numpy as np
 import os
 import torch
+import torch.nn.functional as F
+
+from src.network_utils import UNetConfig
+from src.networks import SharedTwoStreamUNet2Out, UNetSharedSeg2Out
+
 
 def to_save_as_uint8(image):
     image = image - image.min()
@@ -27,3 +32,26 @@ def save_checkpoint_with_dict_simple(model_dict, checkpoint_name, save_dir):
     )
     torch.save(state, filename)
     print('saving checkpoint - {}'.format(checkpoint_name))
+
+
+class UNetSharedSeg2OutPredictionOnly(UNetSharedSeg2Out):
+    def forward(self, input):
+        low, rec, x1, x2 = super().forward(input)
+        return F.softmax(x1, dim=1)
+
+def get_unet(**kwargs):
+    unet_config = UNetConfig(**kwargs)
+    net = UNetSharedSeg2OutPredictionOnly(unet_config)
+    return net
+
+
+class SharedTwoStreamUNet2OutPredictionOnly(SharedTwoStreamUNet2Out):
+    def forward(self, batch_target):
+        low_t, rec_t, x1_t, x2_t = super().forward_target(batch_target)
+        return F.softmax(x1_t, dim=1)
+
+
+def get_2sunet(layer_sharing_specification: str, **kwargs):
+    unet_config = UNetConfig(**kwargs)
+    net_seg = SharedTwoStreamUNet2OutPredictionOnly(unet_config, layer_sharing_spec=layer_sharing_specification)
+    return net_seg
