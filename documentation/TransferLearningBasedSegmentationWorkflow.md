@@ -29,10 +29,12 @@ Target domain image
 As is evident, the target images were captured under a different conditions as compared to source domain and are therefore affected by blur and other kinds of distortions. The segmentation outputs obtained from networks trained with and without transfer learning is shown below.
 
 Segmentation Output on Target Image with no Transfer Learning
-![](./fig/crop-target_noDA_out_10.jpg)
-Segmentation Output on Target Image with Transfer Learning
-![](./fig/crop-target_DA_out_10.jpg)
 
+<img src="./fig/crop-target_noDA_out_10.jpg" width="500">
+
+Segmentation Output on Target Image with Transfer Learning
+
+<img src="./fig/crop-target_DA_out_10.jpg" width="500">
 
 References:
 
