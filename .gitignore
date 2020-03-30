@@ -1,0 +1,4 @@
+testouts
+
+**/__pycache__
+weights/**/*.pth.tar

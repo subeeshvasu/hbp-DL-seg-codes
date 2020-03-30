@@ -1,6 +1,6 @@
+import imageio
 import torch.utils.data as data
 import glob
-import cv2
 import numpy as np
 import os
 
@@ -53,7 +53,28 @@ def _map_labels(labels, num_classes):
 
     return new_labels
 
-def test_loader(file_name, images_path, labels_path, num_classes, normalize_type = "Max255"):
+
+def get_normalized_image(file_path, normalize_type):
+    img = imageio.imread(file_path, pilmode="RGB")
+    img = np.asarray(imageio.core.image_as_uint(img, bitdepth=8)).transpose(2, 0, 1)
+
+    # normalize image intensity
+    img = normalize_intensity(img, normalize_type=normalize_type).astype("float32")
+
+    return img
+
+
+def get_labels(file_path, num_classes):
+    gt = imageio.imread(file_path)
+    gt = np.asarray(imageio.core.image_as_uint(gt, bitdepth=8))[None, ...]
+
+    # convert labels from numerical values into classes + compute class weights
+    gt = _map_labels(gt, num_classes)
+
+    return gt
+
+
+def test_loader(file_name, images_path, labels_path, num_classes, normalize_type="Max255"):
 
     ### images --> img, labels --> gt
 
@@ -61,40 +82,23 @@ def test_loader(file_name, images_path, labels_path, num_classes, normalize_type
     prefix, ext = os.path.splitext(basename)
     img_basename = prefix + images_path.suffix
     gt_basename = prefix + labels_path.suffix
-    
-    img = cv2.imread(os.path.join(images_path.dir,img_basename))
-    gt = cv2.imread(os.path.join(labels_path.dir,gt_basename), cv2.IMREAD_GRAYSCALE)
 
-    # normalize image intensity
-    img = normalize_intensity(img, normalize_type = normalize_type)
-
-    # convert labels from numerical values into classes + compute class weights
-    gt = _map_labels(gt, num_classes)
-
-    # fix the dimensions
-    gt = np.expand_dims(gt, axis=2)
-    gt = np.array(gt).transpose(2,0,1)
-    img = np.array(img, np.float32).transpose(2,0,1)
+    img = get_normalized_image(os.path.join(images_path.dir, img_basename), normalize_type)
+    gt = get_labels(os.path.join(labels_path.dir, gt_basename), num_classes)
 
     return img, gt
 
-def test_loader_without_labels(file_name, images_path, normalize_type = "Max255"):
+
+def test_loader_without_labels(file_name, images_path, normalize_type="Max255"):
 
     ### images --> img
 
     basename = os.path.basename(file_name)
     prefix, ext = os.path.splitext(basename)
     img_basename = prefix + images_path.suffix
-    
-    img = cv2.imread(os.path.join(images_path.dir,img_basename))
 
-    # normalize image intensity
-    img = normalize_intensity(img, normalize_type = normalize_type)
+    return get_normalized_image(os.path.join(images_path.dir, img_basename), normalize_type)
 
-    # fix the dimensions
-    img = np.array(img, np.float32).transpose(2,0,1)
-
-    return img
 
 class loadTestData(data.Dataset):
 
