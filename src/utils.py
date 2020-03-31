@@ -41,17 +41,30 @@ class UNetSharedSeg2OutPredictionOnly(UNetSharedSeg2Out):
 
 def get_unet(**kwargs):
     unet_config = UNetConfig(**kwargs)
-    net = UNetSharedSeg2OutPredictionOnly(unet_config)
-    return net
+    return UNetSharedSeg2OutPredictionOnly(unet_config)
 
 
 class SharedTwoStreamUNet2OutPredictionOnly(SharedTwoStreamUNet2Out):
-    def forward(self, batch_target):
+    def __init__(self, *, input_is_from_source_domain, **super_kwargs):
+        super().__init__(**super_kwargs)
+        if input_is_from_source_domain:
+            self.forward = self.forward_source
+        else:
+            self.forward = self.forward_target
+
+    def forward_source(self, batch_target):
+        low_s, rec_s, x1_s, x2_s = super().forward_source(batch_target)
+        return F.softmax(x1_s, dim=1)
+
+    def forward_target(self, batch_target):
         low_t, rec_t, x1_t, x2_t = super().forward_target(batch_target)
         return F.softmax(x1_t, dim=1)
 
 
-def get_2sunet(layer_sharing_specification: str, **kwargs):
+def get_2sunet(layer_sharing_specification: str, input_is_from_source_domain: bool, **kwargs):
     unet_config = UNetConfig(**kwargs)
-    net_seg = SharedTwoStreamUNet2OutPredictionOnly(unet_config, layer_sharing_spec=layer_sharing_specification)
-    return net_seg
+    return SharedTwoStreamUNet2OutPredictionOnly(
+        unet_config=unet_config,
+        layer_sharing_spec=layer_sharing_specification,
+        input_is_from_source_domain=input_is_from_source_domain
+    )

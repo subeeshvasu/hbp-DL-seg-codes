@@ -1,5 +1,5 @@
-name: 2s-U-Net DA
-description: 2s-U-Net DA
+name: Two Steam U-Net DA
+description: Two Steam U-Net trained on brain vasculature segmentation data from Ludovico Silvestri's European Laboratory for Non-linear Spectroscopy (LENS).
 cite:
     - text: "Roger Bermudez et al. A domain-adaptive two-stream U-Net for electron microscopy image segmentation. ISBI 2018."
       doi: https://doi.org/10.1109/ISBI.2018.8363602
@@ -24,10 +24,11 @@ optional_kwargs:
     border_mode:             same
     remove_skip_connections: False
     layer_sharing_specification: r,r,s,s
+    input_is_from_source_domain: False
 
 test_input: tests/data/ipt10.npy
 test_output: tests/data/2sunetda10.npy
-covers: []
+covers: [documentation/covers/2sUNetCover.png]
 
 inputs:
   - name: raw
@@ -53,7 +54,7 @@ prediction:
       kwargs: {apply_to: 0, data_min: 0.0, data_max: 1.0, output_min: -1.0, output_max: 1.0}
     - spec: https://github.com/bioimage-io/pytorch-bioimage-io/blob/a8863571fde5caeaf79903f71f7913fd2d9a9d01/specs/transformations/EnsureTorch.transformation.yaml
   weights:
-      source: /repos/other/hbp-DL-seg-codes/weights/2sUNetDA/net_seg.pth.tar  # todo: upload
+      source: https://github.com/subeesh/hbp-DL-seg-codes/releases/download/0.1.0/2sUNetDAweights.pth.tar
       hash: {}
   postprocess:
     - spec: https://github.com/bioimage-io/pytorch-bioimage-io/blob/a8863571fde5caeaf79903f71f7913fd2d9a9d01/specs/transformations/EnsureNumpy.transformation.yaml
