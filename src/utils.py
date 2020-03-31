@@ -34,10 +34,21 @@ def save_checkpoint_with_dict_simple(model_dict, checkpoint_name, save_dir):
     print('saving checkpoint - {}'.format(checkpoint_name))
 
 
+def ensure_triple_channel(batch):
+    if len(batch.shape) == 3:
+        return torch.stack([batch] * 3, dim=1)
+    elif len(batch.shape) == 4 and batch.shape[1] == 1:
+        return torch.cat([batch] * 3, dim=1)
+    else:
+        return batch
+
+
 class UNetSharedSeg2OutPredictionOnly(UNetSharedSeg2Out):
-    def forward(self, input):
-        low, rec, x1, x2 = super().forward(input)
+    def forward(self, batch):
+        batch = ensure_triple_channel(batch)
+        low, rec, x1, x2 = super().forward(batch)
         return F.softmax(x1, dim=1)
+
 
 def get_unet(**kwargs):
     unet_config = UNetConfig(**kwargs)
@@ -52,12 +63,14 @@ class SharedTwoStreamUNet2OutPredictionOnly(SharedTwoStreamUNet2Out):
         else:
             self.forward = self.forward_target
 
-    def forward_source(self, batch_target):
-        low_s, rec_s, x1_s, x2_s = super().forward_source(batch_target)
+    def forward_source(self, batch):
+        batch = ensure_triple_channel(batch)
+        low_s, rec_s, x1_s, x2_s = super().forward_source(batch)
         return F.softmax(x1_s, dim=1)
 
-    def forward_target(self, batch_target):
-        low_t, rec_t, x1_t, x2_t = super().forward_target(batch_target)
+    def forward_target(self, batch):
+        batch = ensure_triple_channel(batch)
+        low_t, rec_t, x1_t, x2_t = super().forward_target(batch)
         return F.softmax(x1_t, dim=1)
 
 
