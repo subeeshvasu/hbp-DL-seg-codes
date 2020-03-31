@@ -5,7 +5,7 @@ cite:
       doi: https://doi.org/10.1109/ISBI.2018.8363602
 authors:
   - Roger Bermudez, Vasu Subeesh
-documentation: README.md
+documentation: documentation/TransferLearningBasedSegmentationWorkflow.md
 tags: [unet2d, pytorch, hbp, sga2]
 license: MIT
 
