@@ -11,7 +11,7 @@ cite:
 authors:
   - Vasu Subeesh
 documentation: documentation/TransferLearningBasedSegmentationWorkflow.md
-tags: [unet2d, pytorch, hbp, sga2]
+tags: [unet2d, pytorch, hbp, sga2, brain, vasculature]
 license: MIT
 
 format_version: 0.1.0
@@ -53,6 +53,7 @@ outputs:
 
 prediction:
   preprocess:
+    - spec: https://github.com/bioimage-io/pytorch-bioimage-io/blob/a8863571fde5caeaf79903f71f7913fd2d9a9d01/specs/transformations/EnsureNumpy.transformation.yaml
     - spec: https://github.com/bioimage-io/python-bioimage-io/blob/4a12c1823ec6d47feb544cae48b7c01216b603b9/specs/transformations/NormalizeRange.transformation.yaml
       kwargs: {apply_to: 0, output_min: -1.0, output_max: 1.0}
     - spec: https://github.com/bioimage-io/pytorch-bioimage-io/blob/a8863571fde5caeaf79903f71f7913fd2d9a9d01/specs/transformations/EnsureTorch.transformation.yaml

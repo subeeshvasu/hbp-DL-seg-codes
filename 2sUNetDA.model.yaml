@@ -12,7 +12,7 @@ cite:
 authors:
   - Roger Bermudez, Vasu Subeesh
 documentation: documentation/TransferLearningBasedSegmentationWorkflow.md
-tags: [unet2d, pytorch, hbp, sga2]
+tags: [unet2d, pytorch, hbp, sga2, brain, vasculature]
 license: MIT
 
 format_version: 0.1.0
