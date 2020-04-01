@@ -62,7 +62,7 @@ prediction:
     - spec: https://github.com/bioimage-io/pytorch-bioimage-io/blob/a8863571fde5caeaf79903f71f7913fd2d9a9d01/specs/transformations/EnsureTorch.transformation.yaml
   weights:
       source: https://github.com/subeesh/hbp-DL-seg-codes/releases/download/0.1.0/2sUNetDAweights.pth.tar
-      hash: {}
+      hash: {sha256: 9c4981993086ddceed18548ed62e91b514374e703a13f76d9fdf8f08b0178db3}
   postprocess:
     - spec: https://github.com/bioimage-io/pytorch-bioimage-io/blob/a8863571fde5caeaf79903f71f7913fd2d9a9d01/specs/transformations/EnsureNumpy.transformation.yaml
   dependencies: conda:../environment.yaml
