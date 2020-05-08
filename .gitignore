@@ -1,4 +1,5 @@
 testouts
+build
 
 **/__pycache__
 weights/**/*.pth.tar
