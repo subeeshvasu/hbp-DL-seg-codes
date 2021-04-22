@@ -1,3 +1,8 @@
+format_version: 0.3.0
+language: python
+framework: pytorch
+timestamp: 2015-12-12T01:02:03Z # Need to update this before merge with the real creation date
+
 name: U-Net DA (Domain Adaptation)
 description: U-Net trained on brain vasculature segmentation data from Ludovico Silvestri's European Laboratory for Non-linear Spectroscopy (LENS). 
              U-Net is used as the segmentation network that takes up the inputs from source and target domain, and generate the respective segmentation results at the output.
@@ -13,12 +18,10 @@ authors:
 documentation: documentation/TransferLearningBasedSegmentationWorkflow.md
 tags: [unet2d, pytorch, hbp, sga2, brain, vasculature]
 license: MIT
-
-format_version: 0.1.0
-language: python
-framework: pytorch
+git_repo: https://github.com/subeeshvasu/hdp-DL-sg-codes
 
 source: src.utils.get_unet
+dependencies: conda:../environment.yaml
 optional_kwargs:
     steps:                   4
     first_layer_channels:    64
@@ -29,8 +32,8 @@ optional_kwargs:
     border_mode:             same
     remove_skip_connections: False
 
-test_input: tests/data/ipt10.npy
-test_output: tests/data/unetda10.npy
+test_inputs: [tests/data/ipt10.npy]
+test_outputs: [tests/data/unetda10.npy]
 covers: [documentation/covers/UNetCover.png]
 
 inputs:
@@ -45,21 +48,19 @@ outputs:
     axes: bcyx
     data_type: float32
     data_range: [-inf, inf]
-    halo: [0, 0, 94, 94]
     shape:
       reference_input: raw
       scale: [1, 1, 1, 1]
       offset: [0, 0, 0, 0]
+      halo: [0, 0, 94, 94]
 
 prediction:
   preprocess:
-    - spec: https://github.com/bioimage-io/pytorch-bioimage-io/blob/b44ff3b99fa2717dd0efea6932b6b07ea1a2b9af/specs/transformations/EnsureNumpy.transformation.yaml
+    # NEEDS TO BE UPDATED, no NormalizeRange in spec.
     - spec: https://github.com/bioimage-io/python-bioimage-io/blob/b44ff3b99fa2717dd0efea6932b6b07ea1a2b9af/specs/transformations/NormalizeRange.transformation.yaml
       kwargs: {apply_to: 0, output_min: -1.0, output_max: 1.0}
     - spec: https://github.com/bioimage-io/pytorch-bioimage-io/blob/b44ff3b99fa2717dd0efea6932b6b07ea1a2b9af/specs/transformations/EnsureTorch.transformation.yaml
   weights:
       source: https://github.com/subeeshvasu/hbp-DL-seg-codes/releases/download/0.1.1/UNetDAweights.pth.tar
       hash: {sha256: 90d171979cbbef6bd5fb17e1829ef7141c0589ebae9a19bd8edf31a1bcac0bb3}
-  postprocess:
-    - spec: https://github.com/bioimage-io/pytorch-bioimage-io/blob/b44ff3b99fa2717dd0efea6932b6b07ea1a2b9af/specs/transformations/EnsureNumpy.transformation.yaml
-  dependencies: conda:../environment.yaml
+  
