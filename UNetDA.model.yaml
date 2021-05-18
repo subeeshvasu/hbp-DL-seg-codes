@@ -21,7 +21,7 @@ license: MIT
 git_repo: https://github.com/subeeshvasu/hdp-DL-sg-codes
 
 source: src.utils.get_unet
-dependencies: conda:../environment.yaml
+dependencies: pip:./reqs.txt
 kwargs:
   steps:                   4
   first_layer_channels:    64
@@ -43,9 +43,10 @@ inputs:
     data_range: [0, 1]
     shape: [1, 3, 512, 512]
     preprocessing:
-      # NEEDS TO BE UPDATED, no NormalizeRange in spec.
-      - name: https://github.com/bioimage-io/python-bioimage-io/blob/b44ff3b99fa2717dd0efea6932b6b07ea1a2b9af/specs/transformations/NormalizeRange.transformation.yaml
-        kwargs: {apply_to: 0, output_min: -1.0, output_max: 1.0}
+      - name: scale_range
+        kwargs: {mode: per_sample, axes: "yx", min_percentile: 0, max_percentile: 100}
+      - name: scale_linear
+        kwargs: {axes: yx, gain: 2.0, offset: -1.0}
 
 outputs:
   - name: probs
