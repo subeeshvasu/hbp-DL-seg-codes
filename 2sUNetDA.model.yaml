@@ -24,7 +24,7 @@ git_repo: https://github.com/subeeshvasu/hdp-DL-sg-codes
 
 source: src.utils.get_2sunet
 dependencies: pip:./reqs.txt
-optional_kwargs:
+kwargs:
     steps:                   4
     first_layer_channels:    64
     num_classes:             2
@@ -36,8 +36,8 @@ optional_kwargs:
     layer_sharing_specification: r,r,s,s
     input_is_from_source_domain: False
 
-test_input: [tests/data/ipt10.npy]
-test_output: [tests/data/2sunetda10.npy]
+test_inputs: [tests/data/ipt10.npy]
+test_outputs: [tests/data/2sunetda10.npy]
 covers: [documentation/covers/2sUNetCover.png]
 
 inputs:
@@ -46,9 +46,9 @@ inputs:
     data_type: float32
     data_range: [0, 1]
     shape: [1, 3, 512, 512]
-    preprocess:
+    preprocessing:
       - name: scale_range
-        kwargs: {axes: "yx", min_percentile: 0, max_percentile: 100}
+        kwargs: {mode: per_sample, axes: "yx", min_percentile: 0, max_percentile: 100}
       - name: scale_linear
         kwargs: {axes: yx, gain: 2.0, offset: -1.0}
 
